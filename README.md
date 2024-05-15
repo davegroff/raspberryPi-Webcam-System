@@ -1,14 +1,11 @@
 # LiveStream-WebRTC-Flask-OpenCV
 
-**My [medium story](https://medium.com/@supersjgk/building-a-live-streaming-app-using-flask-opencv-and-webrtc-8cc8b521fa44) contains the following:**
-* The detailed tutorial on how to build this app from scratch.
-* How to customize the app for your own needs.
-* Instructions to follow.
-* Troubleshooting tips.
-
 #### Prerequisistes
 * Webcam/ IP camera
 * A server machine and a client machine (smartphone, pc, etc.) connected to the same network.
+  `python3 -m venv .venv`
+
+  `source .venv/bin/activate`
 
   `pip install Flask`
 
