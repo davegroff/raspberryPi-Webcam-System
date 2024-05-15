@@ -1,0 +1,36 @@
+<html>
+    <body>
+        <div style="display: flex; justify-content: space-around; width: 100%; gap: 8px;">
+            <video id="local" autoPlay muted playsInline width="640" height="480"></video>
+            <video id="remote2" autoPlay muted playsInline width="640" height="480"></video>
+            <video id="remote3" autoPlay muted playsInline width="640" height="480"></video>
+        </div>
+        <script src="peerjs.min.js"></script>
+        <script>
+            localVideo = document.getElementById("local")
+            remoteVideo2 = document.getElementById("remote2")
+            remoteVideo3 = document.getElementById("remote3")
+            
+            const peer = new Peer("webcam1", {
+                host: "192.168.254.194",
+                port: 9000,
+                path: "/server",
+            });
+            navigator.getUserMedia({video: true, audio: true}, function(stream) {
+                var call2 = peer.call('webcam2', stream);
+                var call3 = peer.call('webcam3', stream);
+                localVideo.srcObject = stream;
+                call2.on('stream', function(remoteStream) {
+                    // Show stream in some video/canvas element.
+                    remoteVideo2.srcObject = remoteStream;
+                });
+                call3.on('stream', function(remoteStream) {
+                    // Show stream in some video/canvas element.
+                    remoteVideo3.srcObject = remoteStream;
+                });
+            }, function(err) {
+                console.log('Failed to get local stream' ,err);
+            });
+        </script>
+    </body>
+</html>
