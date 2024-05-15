@@ -1,76 +1,83 @@
+# Import necessary modules
+from flask import Flask, render_template, Response, request, jsonify, redirect, url_for
+from aiortc import RTCPeerConnection, RTCSessionDescription
 import cv2
-from flask_cors import CORS
-from aiortc import RTCPeerConnection, RTCSessionDescription, MediaStreamTrack
-from flask import Flask, render_template, request, jsonify
+import json
+import uuid
+import asyncio
+import logging
+import time
 
 # Create a Flask app instance
 app = Flask(__name__, static_url_path='/static')
 
-CORS(app)
-
 # Set to keep track of RTCPeerConnection instances
 pcs = set()
 
-class CameraVideoTrack(MediaStreamTrack):
-    """
-    A video stream track that captures video frames from a webcam.
-    """
-    kind = "video"
-
-    def __init__(self, camera):
-        super().__init__()
-        self.camera = camera
-
-    async def recv(self):
-        frame = self._get_next_frame()
-        return frame
-
-    def _get_next_frame(self):
-        success, frame = self.camera.read()
-        if success:
-            # Convert the image format for transmission
-            return cv2.imencode('.jpg', frame)[1].tobytes()
+# Function to generate video frames from the camera
+def generate_frames():
+    camera = cv2.VideoCapture(0)
+    while True:
+        start_time = time.time()
+        success, frame = camera.read()
+        if not success:
+            break
         else:
-            raise Exception("Failed to capture camera frame")
+            ret, buffer = cv2.imencode('.jpg', frame)
+            frame = buffer.tobytes()
+            # Concatenate frame and yield for streaming
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n') 
+            elapsed_time = time.time() - start_time
+            logging.debug(f"Frame generation time: {elapsed_time} seconds")
 
 # Route to render the HTML template
 @app.route('/')
 def index():
     return render_template('index.html')
+    # return redirect(url_for('video_feed')) #to render live stream directly
 
 # Asynchronous function to handle offer exchange
 async def offer_async():
-    params = request.json
+    params = await request.json
     offer = RTCSessionDescription(sdp=params["sdp"], type=params["type"])
 
     # Create an RTCPeerConnection instance
     pc = RTCPeerConnection()
 
-    # Open the first video device
-    camera = cv2.VideoCapture(0)
+    # Generate a unique ID for the RTCPeerConnection
+    pc_id = "PeerConnection(%s)" % uuid.uuid4()
+    pc_id = pc_id[:8]
 
-    # Add camera video track to the peer connection
-    video_track = CameraVideoTrack(camera)
-    pc.addTrack(video_track)
-
-    # Add the peer connection to the set
-    pcs.add(pc)
-
-    await pc.setRemoteDescription(offer)
+    # Create a data channel named "chat"
+    # pc.createDataChannel("chat")
 
     # Create and set the local description
-    answer = await pc.createAnswer()
-    await pc.setLocalDescription(answer)
+    await pc.createOffer(offer)
+    await pc.setLocalDescription(offer)
 
     # Prepare the response data with local SDP and type
     response_data = {"sdp": pc.localDescription.sdp, "type": pc.localDescription.type}
 
     return jsonify(response_data)
 
+# Wrapper function for running the asynchronous offer function
+def offer():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    
+    future = asyncio.run_coroutine_threadsafe(offer_async(), loop)
+    return future.result()
+
 # Route to handle the offer request
 @app.route('/offer', methods=['POST'])
-async def offer_route():
-    return await offer_async()
+def offer_route():
+    return offer()
+
+# Route to stream video frames
+@app.route('/video_feed')
+def video_feed():
+    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 # Run the Flask app
 if __name__ == "__main__":

@@ -16,15 +16,6 @@
 
   `pip install aiortc`
 
-#### To run
-* Server Side<br>
-
-  `git clone https://github.com/supersjgk/LiveStream-WebRTC-Flask-OpenCV` <br>
-
-  `cd src`<br>
-
-  `python server.py` OR `python3 server.py`
-
 * Client Side<br>
 To view the live stream from a Server's webcam/IP camera in a client machine, simply open a web browser and type `http://127.0.0.1:<port>/` (client on same machine) OR `http://<server_IP_address>:<port>/` (client on different machine). 
 
