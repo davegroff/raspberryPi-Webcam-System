@@ -13,7 +13,7 @@ if [ "$(printf '%s\n' "$required_python_version" "$current_python_version" | sor
     sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1
     echo "Python $required_python_version installed successfully."
 else
-    echo "Python version is Okay"
+    echo "Python version is OK."
 fi
 
 # Check and install python3-venv package
@@ -23,21 +23,21 @@ if ! dpkg -l | grep -q "python3-venv"; then
     echo "python3-venv package installed successfully."
 fi
 
-# Activate virtual environment
-if [ -z "$VIRTUAL_ENV" ]; then
-    echo "Activating virtual environment..."
+# Create and activate virtual environment
+if [ ! -d ".venv" ]; then
+    echo "Creating virtual environment..."
     python3 -m venv .venv
-    source .venv/bin/activate
-    echo "Virtual environment activated."
+    echo "Virtual environment created."
 fi
+
+echo "Activating virtual environment..."
+source .venv/bin/activate
+echo "Virtual environment activated."
 
 # Install requirements
 echo "Installing requirements..."
 pip install -r requirements-opencv.txt
 echo "Requirements installed successfully."
 
-kill $!
-
-echo "Installation complete!"
 echo "Starting..."
-python app.py &
+exec python app.py
