@@ -36,11 +36,8 @@ echo "Installing requirements..."
 pip install -r requirements-opencv.txt
 echo "Requirements installed successfully."
 
-# Clean up loading message
 kill $!
 
-# Deactivate virtual environment
-deactivate
-echo "Virtual environment deactivated."
-
 echo "Installation complete!"
+echo "Starting..."
+python app.py &
