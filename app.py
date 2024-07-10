@@ -6,7 +6,7 @@ from flask_cors import CORS
 
 # import camera driver
 if os.environ.get('CAMERA'):
-    Camera = import_module('camera_' + os.environ['CAMERA']).Camera
+    Camera = import_module('camera_opencv').Camera
 else:
     from camera import Camera
 
