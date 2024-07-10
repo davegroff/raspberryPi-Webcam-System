@@ -1,5 +1,6 @@
 import os
 import cv2
+import time
 from base_camera import BaseCamera
 
 
@@ -18,12 +19,17 @@ class Camera(BaseCamera):
     @staticmethod
     def frames():
         camera = cv2.VideoCapture(Camera.video_source)
-        if not camera.isOpened():
-            raise RuntimeError('Could not start camera.')
+
+        # if not camera.isOpened():
+        #     raise RuntimeError('Could not start camera.')
 
         while True:
-            # read current frame
-            _, img = camera.read()
+            if not camera.isOpened():
+                yield open('no_camera.jpg', 'rb').read()
+                time.sleep(1)
+            else:
+                # read current frame
+                _, img = camera.read()
 
-            # encode as a jpeg image and return it
-            yield cv2.imencode('.jpg', img)[1].tobytes()
+                # encode as a jpeg image and return it
+                yield cv2.imencode('.jpg', img)[1].tobytes()
