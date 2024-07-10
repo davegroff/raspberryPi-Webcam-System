@@ -3,12 +3,7 @@ import os
 from importlib import import_module
 from flask import Flask, render_template, Response
 from flask_cors import CORS
-
-# import camera driver
-if os.environ.get('CAMERA'):
-    Camera = import_module('camera_opencv').Camera
-else:
-    from camera import Camera
+from camera_opencv import Camera
 
 # Raspberry Pi camera module (requires picamera package)
 # from camera_pi import Camera
