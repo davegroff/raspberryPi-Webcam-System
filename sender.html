@@ -13,7 +13,7 @@
         const peerConnections = {}; // Store peer connections with unique identifiers
         const pendingCandidates = {}; // Store pending candidates for each peer
 
-        async function init() {
+		async function init() {
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
                 /* localVideo.srcObject = localStream; */
@@ -21,10 +21,12 @@
 
                 socket.on('message', handleSocketMessage);
                 socket.on('disconnect', handleSocketDisconnect);
+                socket.emit('message', { type: 'status', online: true, camera: true });
 
             } catch (error) {
                 console.error('Error accessing media devices.', error);
                 alert('Error accessing media devices: ' + error.message);
+                socket.emit('message', { type: 'status', online: true, camera: false });
             }
         }
 
