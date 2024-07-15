@@ -36,8 +36,8 @@ echo "Virtual environment activated."
 
 # Install requirements
 echo "Installing requirements..."
-pip install -r requirements-opencv.txt
+pip install -r requirements-pyppeteer.txt
 echo "Requirements installed successfully."
 
 echo "Starting..."
-exec python app.py
+exec python serverV4.py

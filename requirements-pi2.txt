@@ -1,8 +1,0 @@
-click
-Flask
-itsdangerous
-Jinja2
-MarkupSafe
-Werkzeug
-picamera2
-flask-cors

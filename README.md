@@ -52,6 +52,7 @@ nano templates/index.html
    ```
 
 ### Access the System
-Open a web browser and go to `localhost:5000` to access the RaspberryPi Webcam System.
+Open a web browser and go to `localhost:9000` to serve the video stream from Raspberry Pi
+To see the stream, launch browser and go to `localhost:9000/stream`
 
 Follow these steps meticulously to ensure a seamless setup and management of the RaspberryPi Webcam System as a Systemd service on your Raspberry Pi device.  

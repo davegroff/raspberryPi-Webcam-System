@@ -1,0 +1,5 @@
+Flask
+flask-cors
+flask_socketio
+pyppeteer
+requests

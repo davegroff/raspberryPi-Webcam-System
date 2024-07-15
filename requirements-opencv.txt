@@ -1,9 +1,0 @@
-click
-Flask
-itsdangerous
-Jinja2
-MarkupSafe
-Werkzeug
-numpy
-flask-cors
-opencv-python

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebRTC Receiver</title>
+</head>
+<body>
+    <video id="remoteVideo" autoplay playsinline controls></video>
+    <script src="https://cdn.jsdelivr.net/npm/socket.io-client/dist/socket.io.min.js"></script>
+	<button id="restartBtn" onclick="restartCamera()">Restart</button>
+    <script>
+        const hostIp = location.hostname
+        const socket = io('http://' + hostIp + ':5001');
+        const remoteVideo = document.getElementById('remoteVideo');
+        let peerConnection;
+        let pendingCandidates = [];
+
+		function restartCamera() {
+			socket.emit('message', { type: 'restart', restart: true  });
+		}
+
+        socket.on('message', async message => {
+            console.log('Received message:', message);
+			console.log("to: ", message.to)
+			console.log(message.sid)
+            if (message.type === 'offer') {
+                peerConnection = new RTCPeerConnection();
+                console.log('PeerConnection created');
+
+                peerConnection.onicecandidate = event => {
+                    if (event.candidate) {
+                        console.log('ICE candidate generated:', event.candidate);
+                        socket.emit('message', { type: 'candidate', candidate: event.candidate, name: "client", to: message.sid  });
+                    }
+                };
+
+                peerConnection.ontrack = event => {
+					remoteVideo.srcObject = null
+                    remoteVideo.srcObject = event.streams[0];
+                    console.log('Received remote track:', event.streams[0]);
+					console.log(event.streams[0].getVideoTracks())
+                };
+
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(message.offer));
+                console.log('Offer set as remote description:', message.offer);
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+                console.log('Answer created and set as local description:', answer);
+                socket.emit('message', { type: 'answer', answer: answer, name: "client", to: message.sid });
+
+                // Add any pending ICE candidates
+                pendingCandidates.forEach(async candidate => {
+                    await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+                    console.log('Added pending ICE candidate:', candidate);
+                });
+                pendingCandidates = [];
+            } else if (message.type === 'candidate') {
+                if (peerConnection && peerConnection.remoteDescription) {
+                    await peerConnection.addIceCandidate(new RTCIceCandidate(message.candidate));
+                    console.log('Added ICE candidate:', message.candidate);
+                } else {
+                    // Queue candidate if remote description is not set yet
+                    pendingCandidates.push(message.candidate);
+                    console.log('Queued ICE candidate:', message.candidate);
+                }
+            }
+        });
+
+        socket.on('connect', () => {
+            console.log('Connected to signaling server');
+			socket.emit('message', { type: 'connection', name: "client" });
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from signaling server');
+        });
+    </script>
+</body>
+</html>

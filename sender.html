@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebRTC Sender</title>
+</head>
+<body>
+    <!-- <video id="localVideo" autoplay playsinline></video> -->
+    <script src="https://cdn.jsdelivr.net/npm/socket.io-client/dist/socket.io.min.js"></script>
+    <script>
+        const socket = io('http://localhost:5001');
+        /* const localVideo = document.getElementById('localVideo'); */
+        let localStream;
+        const peerConnections = {}; // Store peer connections with unique identifiers
+        const pendingCandidates = {}; // Store pending candidates for each peer
+
+        async function init() {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                /* localVideo.srcObject = localStream; */
+                console.log('Local stream obtained');
+
+                socket.on('message', handleSocketMessage);
+                socket.on('disconnect', handleSocketDisconnect);
+
+            } catch (error) {
+                console.error('Error accessing media devices.', error);
+                alert('Error accessing media devices: ' + error.message);
+            }
+        }
+
+        function createPeerConnection(peerId) {
+            const peerConnection = new RTCPeerConnection();
+            console.log('PeerConnection created for peer:', peerId);
+
+            localStream.getTracks().forEach(track => {
+                peerConnection.addTrack(track, localStream);
+                console.log('Added local track for peer:', peerId, track);
+            });
+
+            peerConnection.onicecandidate = event => {
+                if (event.candidate) {
+                    console.log('ICE candidate generated for peer:', peerId, event.candidate);
+                    socket.emit('message', { type: 'candidate', candidate: event.candidate, peerId: peerId });
+                }
+            };
+
+            peerConnection.onconnectionstatechange = () => {
+                if (peerConnection.connectionState === 'disconnected' || peerConnection.connectionState === 'failed') {
+                    handlePeerDisconnect(peerId);
+                }
+            };
+
+            peerConnections[peerId] = peerConnection;
+            pendingCandidates[peerId] = [];
+
+            return peerConnection;
+        }
+
+		function createOffer(peerConnection, message) {
+			console.log('******  Creating Offer: ', message.sid)
+			peerConnection.createOffer()
+    			.then(offer => peerConnection.setLocalDescription(offer))
+    			.then(() => {
+        		// Send the offer to the remote peer
+	
+				socket.emit('message', { type: 'offer', offer: peerConnection.localDescription, to: message.sid });
+    })
+    .catch(error => {
+        console.error('Error creating offer:', error);
+    });
+		}
+
+        async function handleSocketMessage(message) {
+            console.log('Received message:', message);
+            const peerId = message.peerId;
+			console.log("to: ", message.to)
+			console.log(message.sid)
+			console.log(peerId)
+			console.log(pendingCandidates)
+
+            if (message.type === 'offer') {
+                const peerConnection = createPeerConnection(peerId);
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(message.offer));
+                console.log('Offer set as remote description for peer:', peerId, message.offer);
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+                console.log('Answer created and set as local description for peer:', peerId, answer);
+                socket.emit('message', { type: 'answer', answer: answer, peerId: peerId });
+
+                // Add any pending ICE candidates
+                pendingCandidates[peerId].forEach(async candidate => {
+                    await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+                    console.log('Added pending ICE candidate for peer:', peerId, candidate);
+                });
+                pendingCandidates[peerId] = [];
+            } else if (message.type === 'answer') {
+                const peerConnection = peerConnections[peerId];
+                if (peerConnection) {
+                    await peerConnection.setRemoteDescription(new RTCSessionDescription(message.answer));
+                    console.log('Answer set as remote description for peer:', peerId, message.answer);
+                }
+            } else if (message.type === 'candidate') {
+                const peerConnection = peerConnections[peerId];
+                if (peerConnection && peerConnection.remoteDescription) {
+                    try {
+                        await peerConnection.addIceCandidate(new RTCIceCandidate(message.candidate));
+                        console.log('Added ICE candidate for peer:', peerId, message.candidate);
+                    } catch (error) {
+                        console.error('Error adding ICE candidate for peer:', peerId, error);
+                    }
+                } else {
+                    // Queue candidate if remote description is not set yet
+                    pendingCandidates[peerId].push(message.candidate);
+                    console.log('Queued ICE candidate for peer:', peerId, message.candidate);
+                }
+            } else if (message.type === 'connection') {
+				console.log('check if still connected')
+				handlePeerDisconnect(peerId);
+				console.log('Handle connection')
+				const peerConnection = createPeerConnection(peerId);
+				createOffer(peerConnection, message);
+			} else if (message.type === 'disconnected') {
+				console.log('Handle disconnected')
+				handlePeerDisconnect(peerId);
+			}
+        }
+
+        function handleSocketDisconnect() {
+            console.log('Socket disconnected');
+            Object.keys(peerConnections).forEach(peerId => {
+                handlePeerDisconnect(peerId);
+            });
+        }
+
+        function handlePeerDisconnect(peerId) {
+            const peerConnection = peerConnections[peerId];
+			if (!peerConnection) return
+			console.log('Peer disconnected, cleaning up for peer:', peerId);
+            if (peerConnection) {
+                peerConnection.close();
+                delete peerConnections[peerId];
+            }
+            if (pendingCandidates[peerId]) {
+                delete pendingCandidates[peerId];
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
