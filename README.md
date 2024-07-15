@@ -37,7 +37,10 @@ nano templates/index.html
    WorkingDirectory=/home/pi/Downloads/raspberryPi-Webcam-System
    ExecStart=/home/pi/Downloads/raspberryPi-Webcam-System/startup.sh
    Restart=always
-
+   StandardOutput=syslog
+   StandardError=syslog
+   SyslogIdentifier=webcam_service
+   
    [Install]
    WantedBy=multi-user.target
    ```

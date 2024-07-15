@@ -1,8 +1,8 @@
 import asyncio
-from pyppeteer import launcher, launch, connect
-from pyppeteer.errors import NetworkError
 import requests
 from time import sleep
+from pyppeteer.errors import NetworkError
+from pyppeteer import launcher, launch, connect
 
 async def check_open_browser():
     try:
@@ -30,22 +30,22 @@ async def scraper():
         launcherX.port = '9222'
         launcherX.url = f'http://127.0.0.1:{launcherX.port}'
         browser = await launcherX.launch()
-        #browser = await launch({"headless": False, "executablePath": '/usr/bin/chromium-browser', "args":['--auto-accept-camera-and-microphone-capture' ]})
+        # browser = await launch({"headless": False, "executablePath": '/usr/bin/chromium-browser', "args":['--auto-accept-camera-and-microphone-capture' ]})
     
     sleep(2)
     print("opening Page")
     pages = await browser.pages()
+
     # Set content security policy to allow media access
-    #await pages[0].setExtraHTTPHeaders({
+    # await pages[0].setExtraHTTPHeaders({
     #   'Content-Security-Policy': "default-src 'self' 'unsafe-inline' blob: data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data:;"
-    #})
+    # })
+
     try:
         await pages[0].goto('http://localhost:9000/',{'waitUntil' : 'domcontentloaded'})
     except Exception as error:
         print(error)
-    #await browser.close()
+
+    # await browser.close()
 
 asyncio.run(scraper())
-
-
-

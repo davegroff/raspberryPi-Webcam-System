@@ -1,13 +1,14 @@
-import threading
-from flask import Flask, request
-from flask_socketio import SocketIO, emit
-from flask_cors import CORS
-import http.server
-import socketserver
-import subprocess  # Import the subprocess module
-import signal
 import sys
 import time
+import signal
+import threading
+import subprocess
+import http.server
+import socketserver
+from flask_cors import CORS
+from flask import Flask, request
+from flask_socketio import SocketIO, emit
+
 
 # Flask-SocketIO server setup
 app = Flask(__name__)
@@ -95,7 +96,6 @@ if __name__ == '__main__':
     
     time.sleep(8)
     
-    #Start Pyppeteer in program.py
     try:
         subprocess.Popen(['python3', 'program.py'])
         print("program.py started successfully")
@@ -105,5 +105,3 @@ if __name__ == '__main__':
     # Join threads to the main thread
     socketio_thread.join()
     http_thread.join()
-    
-
