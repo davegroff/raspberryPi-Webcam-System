@@ -30,20 +30,35 @@ git clone https://github.com/davegroff/raspberryPi-Webcam-System.git
    [Service]
    WorkingDirectory=/home/pi/Downloads/raspberryPi-Webcam-System
    ExecStart=/home/pi/Downloads/raspberryPi-Webcam-System/startup.sh
+   User=pi
    Restart=always
    StandardOutput=syslog
    StandardError=syslog
-   SyslogIdentifier=main_service
+   SyslogIdentifier=webcam_service
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+   ```bash
+   sudo nano /etc/systemd/system/chromium.service
+   ```
+
+   Paste the following content into the file:
+   ```ini
+   [Unit]
+   Description=Launch Chromium with Pyppeteer
+   After=network-online.target
+   Requires=network-online.target
    
    [Service]
    WorkingDirectory=/home/pi/Downloads/raspberryPi-Webcam-System
-   ExecStart=/usr/bin/python3 /home/pi/Downloads/raspberryPi-Webcam-System/program.py
+   ExecStart=/home/pi/Downloads/raspberryPi-Webcam-System/program.sh
+   User=pi
    Restart=always
    StandardOutput=syslog
    StandardError=syslog
    SyslogIdentifier=chromium_service
-   After=main_service.service
-   Requires=main_service.service
 
    [Install]
    WantedBy=multi-user.target
@@ -53,9 +68,14 @@ git clone https://github.com/davegroff/raspberryPi-Webcam-System.git
    Run the following commands to reload the systemd daemon, enable, start, and check the status of the service:
    ```bash
    sudo systemctl daemon-reload
+
    sudo systemctl enable webcam.service
    sudo systemctl start webcam.service
    sudo systemctl status webcam.service
+
+   sudo systemctl enable chromium.service
+   sudo systemctl start chromium.service
+   sudo systemctl status chromium.service
    ```
 
 ### Access the System
