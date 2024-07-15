@@ -25,7 +25,7 @@ git clone https://github.com/davegroff/raspberryPi-Webcam-System.git
    ```ini
    [Unit]
    Description=RaspberryPi5 Webcam System
-   After=network.target
+   After=network-online.target
 
    [Service]
    WorkingDirectory=/home/pi/Downloads/raspberryPi-Webcam-System
@@ -37,7 +37,7 @@ git clone https://github.com/davegroff/raspberryPi-Webcam-System.git
    
    [Service]
    WorkingDirectory=/home/pi/Downloads/raspberryPi-Webcam-System
-   ExecStart=/usr/bin/python3 /home/pi/Downloads/raspberryPi-Webcam-System/another_script.py
+   ExecStart=/usr/bin/python3 /home/pi/Downloads/raspberryPi-Webcam-System/program.py
    Restart=always
    StandardOutput=syslog
    StandardError=syslog
