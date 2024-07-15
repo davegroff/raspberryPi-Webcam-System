@@ -21,16 +21,17 @@ async def scraper():
     else:
         print("Launching new browser...")
         launcherX = launcher.Launcher({
-            "headless": False,
+            "headless": True,
             "executablePath": '/usr/bin/chromium-browser',
-            "args": ['--remote-debugging-port=9222', '--auto-accept-camera-and-microphone-capture']
+            "loop": asyncio.get_running_loop(),
+            "autoClose": False,
+            "args": ['--remote-debugging-port=9222', '--auto-accept-camera-and-microphone-capture'],
         })
         launcherX.port = '9222'
         launcherX.url = f'http://127.0.0.1:{launcherX.port}'
         browser = await launcherX.launch()
     
-    sleep(2)
-    print("opening Page")
+    await asyncio.sleep(5)
     pages = await browser.pages()
 
     # Set content security policy to allow media access
@@ -39,7 +40,8 @@ async def scraper():
     # })
 
     try:
-        await pages[0].goto('http://localhost:9000/',{'waitUntil' : 'domcontentloaded'})
+        await pages[0].goto('http://localhost:9000/', {'waitUntil' : 'domcontentloaded'})
+        while True: pass
     except Exception as error:
         print(error)
 
