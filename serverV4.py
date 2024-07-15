@@ -95,13 +95,13 @@ if __name__ == '__main__':
     socketio_thread.start()
     http_thread.start()
     
-    time.sleep(10)
+    time.sleep(3)
     
-    try:
-        subprocess.Popen(['python', 'program.py'])
-        print("program.py started successfully")
-    except Exception as e:
-        print(f"Failed to start program.py: {e}")
+    # try:
+    #     subprocess.Popen(['python', 'program.py'])
+    #     print("program.py started successfully")
+    # except Exception as e:
+    #     print(f"Failed to start program.py: {e}")
 
     # Join threads to the main thread
     socketio_thread.join()

@@ -18,7 +18,7 @@ git clone https://github.com/davegroff/raspberryPi-Webcam-System.git
 
    Open and edit the systemd service file by running:
    ```bash
-   sudo nano /etc/systemd/system/startup.service
+   sudo nano /etc/systemd/system/webcam.service
    ```
 
    Paste the following content into the file:
@@ -33,8 +33,18 @@ git clone https://github.com/davegroff/raspberryPi-Webcam-System.git
    Restart=always
    StandardOutput=syslog
    StandardError=syslog
-   SyslogIdentifier=webcam_service
+   SyslogIdentifier=main_service
    
+   [Service]
+   WorkingDirectory=/home/pi/Downloads/raspberryPi-Webcam-System
+   ExecStart=/usr/bin/python3 /home/pi/Downloads/raspberryPi-Webcam-System/another_script.py
+   Restart=always
+   StandardOutput=syslog
+   StandardError=syslog
+   SyslogIdentifier=chromium_service
+   After=main_service.service
+   Requires=main_service.service
+
    [Install]
    WantedBy=multi-user.target
    ```
@@ -43,9 +53,9 @@ git clone https://github.com/davegroff/raspberryPi-Webcam-System.git
    Run the following commands to reload the systemd daemon, enable, start, and check the status of the service:
    ```bash
    sudo systemctl daemon-reload
-   sudo systemctl enable startup.service
-   sudo systemctl start startup.service
-   sudo systemctl status startup.service
+   sudo systemctl enable webcam.service
+   sudo systemctl start webcam.service
+   sudo systemctl status webcam.service
    ```
 
 ### Access the System
