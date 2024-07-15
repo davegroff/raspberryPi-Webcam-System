@@ -53,7 +53,7 @@ def test_disconnect():
 
 def run_socketio():
     try:
-        socketio.run(app, host='0.0.0.0', port=5001)
+        socketio.run(app, host='0.0.0.0', port=5001, allow_unsafe_werkzeug=True)
     except Exception as e:
         print(f"SocketIO server error: {e}")
 

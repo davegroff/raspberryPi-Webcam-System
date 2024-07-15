@@ -1,7 +1,6 @@
 import asyncio
 import requests
 from time import sleep
-from pyppeteer.errors import NetworkError
 from pyppeteer import launcher, launch, connect
 
 async def check_open_browser():
@@ -19,8 +18,6 @@ async def scraper():
     if ws_endpoint:
         print("Closing existing browser...")
         browser = await connect(browserWSEndpoint=ws_endpoint)
-
-
     else:
         print("Launching new browser...")
         launcherX = launcher.Launcher({
@@ -31,7 +28,6 @@ async def scraper():
         launcherX.port = '9222'
         launcherX.url = f'http://127.0.0.1:{launcherX.port}'
         browser = await launcherX.launch()
-        # browser = await launch({"headless": False, "executablePath": '/usr/bin/chromium-browser', "args":['--auto-accept-camera-and-microphone-capture' ]})
     
     sleep(2)
     print("opening Page")

@@ -40,4 +40,4 @@ pip install -r requirements-pyppeteer.txt
 echo "Requirements installed successfully."
 
 echo "Starting..."
-exec python serverV4.py
+exec python -u serverV4.py
