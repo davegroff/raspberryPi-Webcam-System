@@ -6,11 +6,6 @@ Clone the repository inside the `/home/pi/Downloads` folder using the following 
 git clone https://github.com/davegroff/raspberryPi-Webcam-System.git
 ```
 
-**Static IP setting:**
-```bash
-cd raspberryPi-Webcam-System
-nano templates/index.html
-```
 
 ### Startup Script and Systemd Service Configuration
 
