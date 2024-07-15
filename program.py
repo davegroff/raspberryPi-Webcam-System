@@ -24,9 +24,10 @@ async def scraper():
     else:
         print("Launching new browser...")
         launcherX = launcher.Launcher({
-        "headless": False,
-        "executablePath": '/usr/bin/chromium-browser',
-        "args": ['--remote-debugging-port=9222', '--auto-accept-camera-and-microphone-capture']})
+            "headless": False,
+            "executablePath": '/usr/bin/chromium-browser',
+            "args": ['--remote-debugging-port=9222', '--auto-accept-camera-and-microphone-capture']
+        })
         launcherX.port = '9222'
         launcherX.url = f'http://127.0.0.1:{launcherX.port}'
         browser = await launcherX.launch()
