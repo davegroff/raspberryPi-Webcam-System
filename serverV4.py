@@ -28,11 +28,12 @@ def handle_message(message):
     
     # Check for the "restart": true key-value pair and run program.py if present
     if message.get('restart') is True:
+        service_name = "chromium.service"
         try:
-            subprocess.Popen(['python3', 'program.py'])
-            print("program.py started successfully")
-        except Exception as e:
-            print(f"Failed to start program.py: {e}")
+            subprocess.call(["sudo", "systemctl", "restart", service_name])
+            print(f"Successfully restarted the '{service_name}' service.")
+        except subprocess.CalledProcessError as e:
+            print(f"Error restarting the '{service_name}' service: {e}")
 
 @socketio.on('connect')
 def test_connect():
