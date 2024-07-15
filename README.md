@@ -6,10 +6,6 @@ Clone the repository inside the `/home/pi/Downloads` folder using the following 
 git clone https://github.com/davegroff/raspberryPi-Webcam-System.git
 ```
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 521a639292872e0b3ddf6c2c8cf223ac6eb4215e
 ### Startup Script and Systemd Service Configuration
 
 1. **Set Executable Permissions:**
