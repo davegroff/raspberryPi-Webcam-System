@@ -12,6 +12,7 @@ git clone https://github.com/davegroff/raspberryPi-Webcam-System.git
    Run the command below to set executable permissions for the startup script:
    ```bash
    sudo chmod +x /home/pi/Downloads/raspberryPi-Webcam-System/startup.sh
+   sudo chmod +x /home/pi/Downloads/raspberryPi-Webcam-System/program.sh
    ```
 
 2. **Create/Update the Systemd Service:**
