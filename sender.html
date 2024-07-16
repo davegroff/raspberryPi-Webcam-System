@@ -114,7 +114,7 @@
 					}
 				} else {
 					// Queue candidate if remote description is not set yet
-					pendingCandidates[peerId].push(message.candidate);
+					if (pendingCandidates[peerId]) pendingCandidates[peerId].push(message.candidate);
 					console.log('Queued ICE candidate for peer:', peerId, message.candidate);
 				}
 			} else if (message.type === 'connection') {
@@ -150,7 +150,7 @@
 		}
 
 		function stopStream() {
-			if (currentStream) {
+			if (localStream) {
 				let tracks = localStream.getTracks();
 				tracks.forEach(track => track.stop());
 				localStream = null;
@@ -170,8 +170,9 @@
 			if (videoInputDevices.length === 0) {
 				// No video input devices available
 				console.log('No video input devices found');
+				socket.emit('message', { type: 'status', online: true, camera: false });
 				stopStream();
-			} else if (!currentStream) {
+			} else if (!localStream) {
 				// Restart the stream if it was previously stopped
 				console.log('Video input device reconnected');
 				init();
