@@ -84,3 +84,15 @@ Open a web browser and go to `localhost:9000` to serve the video stream from Ras
 To see the stream, launch browser and go to `localhost:9000/stream`
 
 Follow these steps meticulously to ensure a seamless setup and management of the RaspberryPi Webcam System as a Systemd service on your Raspberry Pi device.  
+
+### Troubleshooting and Debugging
+## stopping services if needed
+sudo systemctl stop webcam.service
+sudo systemctl stop chromium.service 
+
+## logging
+sudo journalctl -u webcam.service -f
+sudo journalctl -u chromium.service -f
+
+Note: remove -f flag and full logs shown
+forward/back using keyboard F and B.
