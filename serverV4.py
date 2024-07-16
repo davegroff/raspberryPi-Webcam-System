@@ -15,6 +15,9 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 socketio = SocketIO(app, cors_allowed_origins="*")
 
+# Dictionary to store usernames/IDs mapped to socket IDs
+user_sessions = {}
+
 @socketio.on('message')
 def handle_message(message):
     socket_id = request.sid
@@ -24,7 +27,18 @@ def handle_message(message):
     message_with_ip['peerId'] = f"{client_ip}:{client_port}"
     message_with_ip['sid'] = socket_id
     peerToSend = message.get('to')
-    emit('message', message_with_ip, to=peerToSend, broadcast=True)
+    username = message.get('username')
+    if username:
+        user_sessions[username] = request.sid
+        
+    if peerToSend:
+        peer_socket_id = user_sessions.get(peerToSend)
+        if peer_socket_id:
+            emit('message', message_with_ip, to=peer_socket_id)
+        else:
+            emit('message', {'error': 'User not found or not connected'}, to=socket_id)
+    else:
+        emit('message', message_with_ip, broadcast=True)
     
     # Check for the "restart": true key-value pair and run program.py if present
     if message.get('restart') is True:
@@ -45,12 +59,20 @@ def test_disconnect():
     socket_id = request.sid
     client_ip = request.remote_addr
     client_port = request.environ.get('REMOTE_PORT')
+    
+	# Remove the disconnected user from the user_sessions
+    for username, sid in list(user_sessions.items()):
+        if sid == socket_id:
+            del user_sessions[username]
+            
     message = {
         'sid': socket_id,
         'peerId': f"{client_ip}:{client_port}",
         'type': "disconnected"
     }
     emit('message', message, broadcast=True)
+    
+    
 
 def run_socketio():
     try:
