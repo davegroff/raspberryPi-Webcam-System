@@ -66,8 +66,8 @@
 				.then(offer => peerConnection.setLocalDescription(offer))
 				.then(() => {
 					// Send the offer to the remote peer
-
 					socket.emit('message', { type: 'offer', offer: peerConnection.localDescription, to: message.sid });
+					console.log('Offer Sent')
 				})
 				.catch(error => {
 					console.error('Error creating offer:', error);
@@ -96,7 +96,7 @@
 					await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
 					console.log('Added pending ICE candidate for peer:', peerId, candidate);
 				});
-				pendingCandidates[peerId] = [];
+				if (!pendingCandidates[peerId]) pendingCandidates[peerId] = [];
 			} else if (message.type === 'answer') {
 				const peerConnection = peerConnections[peerId];
 				if (peerConnection) {
