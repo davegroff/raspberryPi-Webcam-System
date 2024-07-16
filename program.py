@@ -23,26 +23,26 @@ async def close_dialog(dialog):
             await dialog.dismiss()
             
 async def scraper():
-    #Close previous browser
-	await close_chrome_instances()
+    
      
 	ws_endpoint = await check_open_browser()
     
 	if ws_endpoint:
 		print("Closing existing browser...")
-		browser = await connect(browserWSEndpoint=ws_endpoint)
-	else:
-		print("Launching new browser...")
-		launcherX = launcher.Launcher({
-            "headless": True,
-            "executablePath": '/usr/bin/chromium-browser',
-            "loop": asyncio.get_running_loop(),
-            "autoClose": False,
-            "args": ['--remote-debugging-port=9222', '--auto-accept-camera-and-microphone-capture'],
-        })
-		launcherX.port = '9222'
-		launcherX.url = f'http://127.0.0.1:{launcherX.port}'
-		browser = await launcherX.launch()
+		await close_chrome_instances()
+		#browser = await connect(browserWSEndpoint=ws_endpoint)
+	
+	print("Launching new browser...")
+	launcherX = launcher.Launcher({
+		"headless": True,
+		"executablePath": '/usr/bin/chromium-browser',
+		"loop": asyncio.get_running_loop(),
+		"autoClose": False,
+		"args": ['--remote-debugging-port=9222', '--auto-accept-camera-and-microphone-capture'],
+	})
+	launcherX.port = '9222'
+	launcherX.url = f'http://127.0.0.1:{launcherX.port}'
+	browser = await launcherX.launch()
     
 	await asyncio.sleep(5)
 	pages = await browser.pages()
@@ -51,7 +51,7 @@ async def scraper():
     # await pages[0].setExtraHTTPHeaders({
     #   'Content-Security-Policy': "default-src 'self' 'unsafe-inline' blob: data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data:;"
     # })
-
+	print("Opening Page...")
 	try:
 		pages[0].on(
             'dialog',
