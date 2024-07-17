@@ -27,9 +27,7 @@ def handle_message(message):
     message_with_ip['peerId'] = f"{client_ip}"
     message_with_ip['sid'] = socket_id
     peerToSend = message.get('to')
-    username = message.get('username')
-    if username:
-        user_sessions[username] = request.sid
+    
         
     if peerToSend:
         peer_socket_id = user_sessions.get(peerToSend)
@@ -50,8 +48,10 @@ def handle_message(message):
             print(f"Error restarting the '{service_name}' service: {e}")
 
 @socketio.on('connect')
-def test_connect():
-    print('Client connected')
+def test_connect(auth):
+    username = auth.get('username')
+    if username:
+        user_sessions[username] = request.sid
 
 @socketio.on('disconnect')
 def test_disconnect():

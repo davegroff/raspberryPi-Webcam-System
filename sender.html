@@ -9,12 +9,18 @@
 	<!-- <video id="localVideo" autoplay playsinline></video> -->
 	<script src="./socketIO.min.js"></script>
 	<script>
-		const socket = io('http://localhost:5001');
+
+		const userId = Math.floor(Math.random() * 100)
+		const socket = io('http://localhost:5001', {
+  		auth: {
+    		username: userId
+  		}
+});
 		/* const localVideo = document.getElementById('localVideo'); */
 		let localStream;
 		const peerConnections = {}; // Store peer connections with unique identifiers
 		const pendingCandidates = {}; // Store pending candidates for each peer
-		const userId = Math.floor(Math.random() * 100)
+		
 
 		async function init() {
 			try {
