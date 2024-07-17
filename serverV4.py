@@ -27,14 +27,16 @@ def handle_message(message):
     message_with_ip['peerId'] = f"{client_ip}"
     message_with_ip['sid'] = socket_id
     peerToSend = message.get('to')
-    
+    username = message.get('username')
+    if username:
+        user_sessions[username] = socket_id
         
     if peerToSend:
         peer_socket_id = user_sessions.get(peerToSend)
         if peer_socket_id:
             emit('message', message_with_ip, to=peer_socket_id)
         else:
-            emit('message', {'error': 'User not found or not connected'}, to=socket_id)
+            emit('message', message_with_ip, broadcast=True)
     else:
         emit('message', message_with_ip, broadcast=True)
     
@@ -49,12 +51,8 @@ def handle_message(message):
 
 @socketio.on('connect')
 def test_connect():
-    socket_id = request.sid
-    auth = request.args  # Get the auth data from the request arguments
-    emit('message', auth, broadcast=True)
-    username = auth.get('username')
-    if username:
-        user_sessions[username] = socket_id
+	print('client connected')
+    
 
 @socketio.on('disconnect')
 def test_disconnect():
