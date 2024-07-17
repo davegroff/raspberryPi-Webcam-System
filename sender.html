@@ -126,7 +126,7 @@
 					console.log('Queued ICE candidate for peer:', peerId, message.candidate);
 				}
 			} else if (message.type === 'connection') {
-				console.log('check if still connected')
+				console.log('Connection Request', message)
 				handlePeerDisconnect(peerId);
 				console.log('Handle connection')
 				const peerConnection = createPeerConnection(peerId);
