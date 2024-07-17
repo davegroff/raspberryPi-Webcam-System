@@ -51,7 +51,7 @@ def handle_message(message):
 def test_connect():
     socket_id = request.sid
     auth = request.args  # Get the auth data from the request arguments
-    print(request.args)
+    emit('message', auth, broadcast=True)
     username = auth.get('username')
     if username:
         user_sessions[username] = socket_id
