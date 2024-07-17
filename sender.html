@@ -14,6 +14,7 @@
 		let localStream;
 		const peerConnections = {}; // Store peer connections with unique identifiers
 		const pendingCandidates = {}; // Store pending candidates for each peer
+		const userId = Math.floor(Math.random() * 100)
 
 		async function init() {
 			try {
@@ -28,7 +29,7 @@
 			} catch (error) {
 				console.error('Error accessing media devices.', error);
 				alert('Error accessing media devices: ' + error.message);
-				socket.emit('message', { type: 'status', online: true, camera: false });
+				socket.emit('message', { type: 'status', online: true, camera: false, username: userId });
 			}
 		}
 
@@ -44,7 +45,7 @@
 			peerConnection.onicecandidate = event => {
 				if (event.candidate) {
 					console.log('ICE candidate generated for peer:', peerId, event.candidate);
-					socket.emit('message', { type: 'candidate', candidate: event.candidate, peerId: peerId });
+					socket.emit('message', { type: 'candidate', candidate: event.candidate, peerId: peerId, username: userId });
 				}
 			};
 
@@ -66,7 +67,7 @@
 				.then(offer => peerConnection.setLocalDescription(offer))
 				.then(() => {
 					// Send the offer to the remote peer
-					socket.emit('message', { type: 'offer', offer: peerConnection.localDescription, to: message.sid });
+					socket.emit('message', { type: 'offer', offer: peerConnection.localDescription, to: message.sid, username: userId });
 					console.log('Offer Sent')
 				})
 				.catch(error => {
@@ -89,7 +90,7 @@
 				const answer = await peerConnection.createAnswer();
 				await peerConnection.setLocalDescription(answer);
 				console.log('Answer created and set as local description for peer:', peerId, answer);
-				socket.emit('message', { type: 'answer', answer: answer, peerId: peerId });
+				socket.emit('message', { type: 'answer', answer: answer, peerId: peerId, username: userId });
 
 				// Add any pending ICE candidates
 				pendingCandidates[peerId].forEach(async candidate => {
@@ -170,7 +171,7 @@
 			if (videoInputDevices.length === 0) {
 				// No video input devices available
 				console.log('No video input devices found');
-				socket.emit('message', { type: 'status', online: true, camera: false });
+				socket.emit('message', { type: 'status', online: true, camera: false, username: userId });
 				stopStream();
 			} else if (!localStream) {
 				// Restart the stream if it was previously stopped

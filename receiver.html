@@ -15,7 +15,7 @@
         let pendingCandidates = [];
 
 		function restartCamera() {
-			socket.emit('message', { type: 'restart', restart: true  });
+			socket.emit('message', { type: 'restart', restart: true, username: userId  });
 		}
 
         socket.on('message', async message => {
@@ -29,7 +29,7 @@
                 peerConnection.onicecandidate = event => {
                     if (event.candidate) {
                         console.log('ICE candidate generated:', event.candidate);
-                        socket.emit('message', { type: 'candidate', candidate: event.candidate, name: "client", to: message.sid  });
+                        socket.emit('message', { type: 'candidate', candidate: event.candidate, name: "client", to: message.sid, username: userId  });
                     }
                 };
 
@@ -45,7 +45,7 @@
                 const answer = await peerConnection.createAnswer();
                 await peerConnection.setLocalDescription(answer);
                 console.log('Answer created and set as local description:', answer);
-                socket.emit('message', { type: 'answer', answer: answer, name: "client", to: message.sid });
+                socket.emit('message', { type: 'answer', answer: answer, name: "client", to: message.sid, username: userId });
 
                 // Add any pending ICE candidates
                 pendingCandidates.forEach(async candidate => {
@@ -67,7 +67,7 @@
 
         socket.on('connect', () => {
             console.log('Connected to signaling server');
-			socket.emit('message', { type: 'connection', name: "client" });
+			socket.emit('message', { type: 'connection', name: "client", username: userId });
         });
 
         socket.on('disconnect', () => {
