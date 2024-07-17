@@ -48,10 +48,12 @@ def handle_message(message):
             print(f"Error restarting the '{service_name}' service: {e}")
 
 @socketio.on('connect')
-def test_connect(auth):
+def test_connect():
+    socket_id = request.sid
+    auth = request.args  # Get the auth data from the request arguments
     username = auth.get('username')
     if username:
-        user_sessions[username] = request.sid
+        user_sessions[username] = socket_id
 
 @socketio.on('disconnect')
 def test_disconnect():
