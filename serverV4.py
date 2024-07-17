@@ -24,7 +24,7 @@ def handle_message(message):
     client_ip = request.remote_addr
     client_port = request.environ.get('REMOTE_PORT')
     message_with_ip = message.copy()  # Create a copy of the message
-    message_with_ip['peerId'] = f"{client_ip}:{client_port}"
+    message_with_ip['peerId'] = f"{client_ip}"
     message_with_ip['sid'] = socket_id
     peerToSend = message.get('to')
     username = message.get('username')
