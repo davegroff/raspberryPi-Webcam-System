@@ -80,6 +80,9 @@
 		async function handleSocketMessage(message) {
 			console.log('This server ID: ', userId)
 			console.log('Received message:', message);
+
+			if (userId === message.username) return
+			
 			const peerId = message.peerId;
 			console.log("to: ", message.to)
 			console.log(message.sid)

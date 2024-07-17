@@ -24,10 +24,12 @@ def handle_message(message):
     client_ip = request.remote_addr
     client_port = request.environ.get('REMOTE_PORT')
     message_with_ip = message.copy()  # Create a copy of the message
-    message_with_ip['peerId'] = f"{client_ip}"
     message_with_ip['sid'] = socket_id
     peerToSend = message.get('to')
     username = message.get('username')
+    message_with_ip['peerId'] = username
+    message_with_ip['peerIPAddress'] = f"{client_ip}:{client_port}"
+    
     if username:
         user_sessions[username] = socket_id
         
@@ -61,14 +63,17 @@ def test_disconnect():
     client_ip = request.remote_addr
     client_port = request.environ.get('REMOTE_PORT')
     
+    savedUsername = ""
 	# Remove the disconnected user from the user_sessions
     for username, sid in list(user_sessions.items()):
         if sid == socket_id:
+            savedUsername = username
             del user_sessions[username]
             
     message = {
         'sid': socket_id,
-        'peerId': f"{client_ip}:{client_port}",
+        'peerId': savedUsername,
+        'peerIPAddress': f"{client_ip}:{client_port}",
         'type': "disconnected"
     }
     emit('message', message, broadcast=True)
