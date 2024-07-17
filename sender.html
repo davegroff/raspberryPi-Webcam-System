@@ -10,12 +10,8 @@
 	<script src="./socketIO.min.js"></script>
 	<script>
 
-		const userId = Math.floor(Math.random() * 100)
-		const socket = io('http://localhost:5001', {
-  		auth: {
-    		username: userId
-  		}
-});
+		const userId = Math.random().toString(36).replace('0.', '');
+		const socket = io('http://localhost:5001');
 		/* const localVideo = document.getElementById('localVideo'); */
 		let localStream;
 		const peerConnections = {}; // Store peer connections with unique identifiers
