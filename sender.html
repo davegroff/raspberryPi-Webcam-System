@@ -24,7 +24,7 @@
 
 				socket.on('message', handleSocketMessage);
 				socket.on('disconnect', handleSocketDisconnect);
-				socket.emit('message', { type: 'status', online: true, camera: true });
+				socket.emit('message', { type: 'status', online: true, camera: true, username: userId });
 
 			} catch (error) {
 				console.error('Error accessing media devices.', error);
@@ -33,7 +33,7 @@
 			}
 		}
 
-		function createPeerConnection(peerId) {
+		function createPeerConnection(peerId, sendTo) {
 			const peerConnection = new RTCPeerConnection();
 			console.log('PeerConnection created for peer:', peerId);
 
@@ -45,7 +45,7 @@
 			peerConnection.onicecandidate = event => {
 				if (event.candidate) {
 					console.log('ICE candidate generated for peer:', peerId, event.candidate);
-					socket.emit('message', { type: 'candidate', candidate: event.candidate, peerId: peerId, username: userId });
+					socket.emit('message', { type: 'candidate', candidate: event.candidate, peerId: peerId, username: userId, to: sendTo });
 				}
 			};
 
@@ -67,7 +67,7 @@
 				.then(offer => peerConnection.setLocalDescription(offer))
 				.then(() => {
 					// Send the offer to the remote peer
-					socket.emit('message', { type: 'offer', offer: peerConnection.localDescription, to: message.sid, username: userId });
+					socket.emit('message', { type: 'offer', offer: peerConnection.localDescription, to: message.username, username: userId });
 					console.log('Offer Sent')
 				})
 				.catch(error => {
@@ -76,6 +76,7 @@
 		}
 
 		async function handleSocketMessage(message) {
+			console.log('This server ID: ', userId)
 			console.log('Received message:', message);
 			const peerId = message.peerId;
 			console.log("to: ", message.to)
@@ -84,13 +85,13 @@
 			console.log(pendingCandidates)
 
 			if (message.type === 'offer') {
-				const peerConnection = createPeerConnection(peerId);
+				const peerConnection = createPeerConnection(peerId, message.username);
 				await peerConnection.setRemoteDescription(new RTCSessionDescription(message.offer));
 				console.log('Offer set as remote description for peer:', peerId, message.offer);
 				const answer = await peerConnection.createAnswer();
 				await peerConnection.setLocalDescription(answer);
 				console.log('Answer created and set as local description for peer:', peerId, answer);
-				socket.emit('message', { type: 'answer', answer: answer, peerId: peerId, username: userId });
+				socket.emit('message', { type: 'answer', answer: answer, peerId: peerId, username: userId, to: message.username });
 
 				// Add any pending ICE candidates
 				pendingCandidates[peerId].forEach(async candidate => {
