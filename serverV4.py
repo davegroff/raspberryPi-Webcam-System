@@ -19,21 +19,6 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 # Dictionary to store usernames/IDs mapped to socket IDs
 user_sessions = {}
 
-def modify_sdp(sdp, new_ip):
-    """
-    Modify the SDP to replace the connection IP address with the new IP.
-    """
-    sdp_lines = sdp.split("\r\n")
-    modified_sdp = []
-
-    for line in sdp_lines:
-        if line.startswith("c=IN IP4"):
-            modified_sdp.append(f"c=IN IP4 {new_ip}")
-        else:
-            modified_sdp.append(line)
-
-    return "\r\n".join(modified_sdp)
-
 def get_local_ip():
     try:
         local_ip = socket.gethostbyname(socket.gethostname())
@@ -56,21 +41,45 @@ def get_local_ip():
 local_ip = get_local_ip()
 print(f"Local IP address is: {local_ip}")
 
+def modify_sdp(sdp, new_ip):
+    """
+    Modify the SDP to replace the connection IP address with the new IP.
+    """
+    sdp_lines = sdp.split("\r\n")
+    modified_sdp = []
+
+    for line in sdp_lines:
+        if line.startswith("c=IN IP4"):
+            ip = line.split(" ")[2]
+            if ip.startswith("127."):
+                modified_sdp.append(f"c=IN IP4 {new_ip}")
+            else:
+                modified_sdp.append(line)
+        else:
+            modified_sdp.append(line)
+
+    return "\r\n".join(modified_sdp)
+
 @socketio.on('message')
 def handle_message(message):
     socket_id = request.sid
     client_ip = request.remote_addr
-    original_sdp = data['sdp']
-    new_ip = "NEW_IP_ADDRESS"
-    modified_sdp = modify_sdp(original_sdp, new_ip)
-    data['sdp'] = modified_sdp
-    
     client_port = request.environ.get('REMOTE_PORT')
     message_with_ip = message.copy()  # Create a copy of the message
+    
+    offer = message.get('offer')
+    if offer: 
+        original_sdp = offer['sdp']
+        new_ip = local_ip  # Use the local IP address
+        modified_sdp = modify_sdp(original_sdp, new_ip)
+        message_with_ip['offer']['sdp'] = modified_sdp
+   
     message_with_ip['sid'] = socket_id
     peerToSend = message.get('to')
     username = message.get('username')
     message_with_ip['peerId'] = username
+    if client_ip.startswith("127."):
+        client_ip = local_ip
     message_with_ip['peerIPAddress'] = f"{client_ip}:{client_port}"
     
     if username:
@@ -126,7 +135,7 @@ def test_disconnect():
 def run_socketio():
     try:
         print("Flask SocketIO server is running on port", 5001)
-        socketio.run(app, host=local_ip, port=5001, allow_unsafe_werkzeug=True)
+        socketio.run(app, host='0.0.0.0', port=5001, allow_unsafe_werkzeug=True)
     except Exception as e:
         print(f"SocketIO server error: {e}")
 
