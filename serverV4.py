@@ -67,12 +67,12 @@ def handle_message(message):
     client_port = request.environ.get('REMOTE_PORT')
     message_with_ip = message.copy()  # Create a copy of the message
     
-    offer = message.get('offer')
-    if offer: 
-        original_sdp = offer['sdp']
+    # Check if the message contains an SDP offer and replace the SDP if necessary
+    if 'sdp' in message:
+        original_sdp = message['sdp']
         new_ip = local_ip  # Use the local IP address
         modified_sdp = modify_sdp(original_sdp, new_ip)
-        message_with_ip['offer']['sdp'] = modified_sdp
+        message_with_ip['sdp'] = modified_sdp
    
     message_with_ip['sid'] = socket_id
     peerToSend = message.get('to')
