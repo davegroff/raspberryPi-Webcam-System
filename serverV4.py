@@ -68,7 +68,7 @@ def handle_message(message):
     message_with_ip = message.copy()  # Create a copy of the message
     
     # Check if the message contains an SDP offer and replace the SDP if necessary
-    if 'sdp' in message:
+    if 'sdp' in message.get('offer'):
         original_sdp = message['sdp']
         new_ip = local_ip  # Use the local IP address
         modified_sdp = modify_sdp(original_sdp, new_ip)
