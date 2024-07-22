@@ -5,6 +5,7 @@ import threading
 import subprocess
 import http.server
 import socketserver
+import socket
 from flask_cors import CORS
 from flask import Flask, request
 from flask_socketio import SocketIO, emit
@@ -18,10 +19,52 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 # Dictionary to store usernames/IDs mapped to socket IDs
 user_sessions = {}
 
+def modify_sdp(sdp, new_ip):
+    """
+    Modify the SDP to replace the connection IP address with the new IP.
+    """
+    sdp_lines = sdp.split("\r\n")
+    modified_sdp = []
+
+    for line in sdp_lines:
+        if line.startswith("c=IN IP4"):
+            modified_sdp.append(f"c=IN IP4 {new_ip}")
+        else:
+            modified_sdp.append(line)
+
+    return "\r\n".join(modified_sdp)
+
+def get_local_ip():
+    try:
+        local_ip = socket.gethostbyname(socket.gethostname())
+        # Validate IP address to ensure it's not the loopback address
+        if local_ip.startswith("127."):
+            raise ValueError("IP address is a loopback address")
+    except Exception:
+        # Fallback method if hostname resolution returns loopback address
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            s.connect(("192.168.254.1", 80))  # This should be the IP address of the LAN router
+            local_ip = s.getsockname()[0]
+        except Exception:
+            local_ip = "127.0.0.1"
+        finally:
+            s.close()
+    return local_ip
+
+# Get the local IP address
+local_ip = get_local_ip()
+print(f"Local IP address is: {local_ip}")
+
 @socketio.on('message')
 def handle_message(message):
     socket_id = request.sid
     client_ip = request.remote_addr
+    original_sdp = data['sdp']
+    new_ip = "NEW_IP_ADDRESS"
+    modified_sdp = modify_sdp(original_sdp, new_ip)
+    data['sdp'] = modified_sdp
+    
     client_port = request.environ.get('REMOTE_PORT')
     message_with_ip = message.copy()  # Create a copy of the message
     message_with_ip['sid'] = socket_id
@@ -83,7 +126,7 @@ def test_disconnect():
 def run_socketio():
     try:
         print("Flask SocketIO server is running on port", 5001)
-        socketio.run(app, host='0.0.0.0', port=5001, allow_unsafe_werkzeug=True)
+        socketio.run(app, host=local_ip, port=5001, allow_unsafe_werkzeug=True)
     except Exception as e:
         print(f"SocketIO server error: {e}")
 
