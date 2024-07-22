@@ -9,6 +9,7 @@ import socket
 from flask_cors import CORS
 from flask import Flask, request
 from flask_socketio import SocketIO, emit
+import re
 
 
 # Flask-SocketIO server setup
@@ -43,22 +44,9 @@ print(f"Local IP address is: {local_ip}")
 
 def modify_sdp(sdp, new_ip):
     """
-    Modify the SDP to replace the connection IP address with the new IP.
+    Modify the SDP to replace all instances of 127.0.0.1 with the new IP.
     """
-    sdp_lines = sdp.split("\r\n")
-    modified_sdp = []
-
-    for line in sdp_lines:
-        if line.startswith("c=IN IP4"):
-            ip = line.split(" ")[2]
-            if ip.startswith("127."):
-                modified_sdp.append(f"c=IN IP4 {new_ip}")
-            else:
-                modified_sdp.append(line)
-        else:
-            modified_sdp.append(line)
-
-    return "\r\n".join(modified_sdp)
+    return re.sub(r'127\.0\.0\.1', new_ip, sdp)
 
 @socketio.on('message')
 def handle_message(message):
