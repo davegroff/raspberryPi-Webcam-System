@@ -13,6 +13,11 @@
 		const userId = Math.random().toString(36).replace('0.', '');
 		const socket = io('http://localhost:5001');
 		/* const localVideo = document.getElementById('localVideo'); */
+		const config = {
+        iceServers: [
+            { urls: 'stun:localhost:3478' }
+        ]
+    };
 		let localStream;
 		const peerConnections = {}; // Store peer connections with unique identifiers
 		const pendingCandidates = {}; // Store pending candidates for each peer
@@ -36,7 +41,7 @@
 		}
 
 		function createPeerConnection(peerId, sendTo) {
-			const peerConnection = new RTCPeerConnection();
+			const peerConnection = new RTCPeerConnection(config);
 			console.log('PeerConnection created for peer:', peerId);
 
 			localStream.getTracks().forEach(track => {

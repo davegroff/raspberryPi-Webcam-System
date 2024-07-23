@@ -126,6 +126,24 @@ def run_socketio():
         socketio.run(app, host='0.0.0.0', port=5001, allow_unsafe_werkzeug=True)
     except Exception as e:
         print(f"SocketIO server error: {e}")
+        
+async def handle_stun_request(reader, writer):
+    data = await reader.read(1024)
+    addr = writer.get_extra_info('peername')
+    print(f"Received {data!r} from {addr!r}")
+    
+    response = stun.build_response(data, addr[0], addr[1])
+    writer.write(response)
+    await writer.drain()
+    writer.close()
+
+async def run_stun_server():
+    server = await asyncio.start_server(handle_stun_request, '0.0.0.0', 3478)
+    addr = server.sockets[0].getsockname()
+    print(f'Serving on {addr}')
+
+    async with server:
+        await server.serve_forever()
 
 # HTTP server setup
 PORT = 9000
@@ -158,10 +176,12 @@ signal.signal(signal.SIGINT, signal_handler)
 if __name__ == '__main__':
     # Create threads for each server
     socketio_thread = threading.Thread(target=run_socketio)
+    stun_thread = threading.Thread(target=run_stun_server)
     http_thread = threading.Thread(target=run_http_server)
 
-    # Start both threads
+    # Start all threads
     socketio_thread.start()
+    stun_thread.start()
     http_thread.start()
     
     time.sleep(3)
@@ -174,4 +194,7 @@ if __name__ == '__main__':
 
     # Join threads to the main thread
     socketio_thread.join()
+    stun_thread.join()
     http_thread.join()
+    
+	
