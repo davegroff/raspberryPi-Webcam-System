@@ -6,12 +6,12 @@ import subprocess
 import http.server
 import socketserver
 import socket
+import asyncio
 from flask_cors import CORS
 from flask import Flask, request
 from flask_socketio import SocketIO, emit
 import re
-from pystun3 import stun
-
+import stun
 
 # Flask-SocketIO server setup
 app = Flask(__name__)
@@ -94,8 +94,7 @@ def handle_message(message):
 
 @socketio.on('connect')
 def test_connect():
-	print('client connected')
-    
+    print('client connected')
 
 @socketio.on('disconnect')
 def test_disconnect():
@@ -105,7 +104,7 @@ def test_disconnect():
     client_port = request.environ.get('REMOTE_PORT')
     
     savedUsername = ""
-	# Remove the disconnected user from the user_sessions
+    # Remove the disconnected user from the user_sessions
     for username, sid in list(user_sessions.items()):
         if sid == socket_id:
             savedUsername = username
@@ -118,8 +117,6 @@ def test_disconnect():
         'type': "disconnected"
     }
     emit('message', message, broadcast=True)
-    
-    
 
 def run_socketio():
     try:
@@ -127,7 +124,7 @@ def run_socketio():
         socketio.run(app, host='0.0.0.0', port=5001, allow_unsafe_werkzeug=True)
     except Exception as e:
         print(f"SocketIO server error: {e}")
-        
+
 async def handle_stun_request(reader, writer):
     data = await reader.read(1024)
     addr = writer.get_extra_info('peername')
@@ -173,11 +170,14 @@ def signal_handler(sig, frame):
 
 signal.signal(signal.SIGINT, signal_handler)
 
+def start_stun_server():
+    asyncio.run(run_stun_server())
+
 # Running both servers concurrently using threading
 if __name__ == '__main__':
     # Create threads for each server
     socketio_thread = threading.Thread(target=run_socketio)
-    stun_thread = threading.Thread(target=run_stun_server)
+    stun_thread = threading.Thread(target=start_stun_server)
     http_thread = threading.Thread(target=run_http_server)
 
     # Start all threads
@@ -197,5 +197,3 @@ if __name__ == '__main__':
     socketio_thread.join()
     stun_thread.join()
     http_thread.join()
-    
-	
