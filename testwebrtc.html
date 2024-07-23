@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>STUN Client</title>
+    <script>
+        async function getPublicIP() {
+            // Configuration object for the STUN server
+            const config = {
+                iceServers: [
+                    { urls: 'stun:192.168.254.22:3478' }  // Replace with your local STUN server IP and port
+                ]
+            };
+
+            // Create a new RTCPeerConnection
+            const pc = new RTCPeerConnection(config);
+
+            // Create a data channel (required to initiate the ICE gathering process)
+            pc.createDataChannel('');
+
+            // Create an offer (required to initiate the ICE gathering process)
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+
+            return new Promise((resolve, reject) => {
+                pc.onicecandidate = (event) => {
+                    if (!event.candidate) {
+                        // No more candidates are being gathered
+                        pc.close();
+                        reject('Could not gather any ICE candidates');
+                        return;
+                    }
+
+                    const candidate = event.candidate;
+                    if (candidate.candidate.includes('srflx')) {
+                        // srflx candidates are server-reflexive candidates (public IP)
+                        const publicIP = candidate.candidate.split(' ')[4];
+                        resolve(publicIP);
+                        pc.close();
+                    }
+                };
+
+                pc.onicegatheringstatechange = () => {
+                    if (pc.iceGatheringState === 'complete') {
+                        pc.close();
+                        reject('ICE gathering completed without any srflx candidate');
+                    }
+                };
+            });
+        }
+
+		console.log("try webrtc")
+
+        getPublicIP()
+            .then(publicIP => console.log('Your public IP address is:', publicIP))
+            .catch(error => console.error('Error gathering public IP:', error));
+    </script>
+</head>
+<body>
+</body>
+</html>
