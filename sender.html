@@ -35,7 +35,6 @@
 
 			} catch (error) {
 				console.error('Error accessing media devices.', error);
-				alert('Error accessing media devices: ' + error.message);
 				socket.emit('message', { type: 'status', online: true, camera: false, username: userId });
 			}
 		}
@@ -67,11 +66,12 @@
 
 			peerConnections[peerId] = peerConnection;
 			pendingCandidates[peerId] = [];
+			return peerConnection;
 		} catch (error) {
-			socket.emit('message', { type: 'error', username: userId, msg: error });
+			socket.emit('message', { type: 'error', username: userId, msg: JSON.stringify(error) });
 			}
 
-			return peerConnection;
+			
 		}
 
 		function createOffer(peerConnection, message) {
@@ -88,9 +88,10 @@
 				})
 				.catch(error => {
 					console.error('Error creating offer:', error);
+					socket.emit('message', { type: 'error', username: userId, msg: JSON.stringify(error) });
 				});
 			} catch (error) {
-				socket.emit('message', { type: 'error', username: userId, msg: error });
+				socket.emit('message', { type: 'error', username: userId, msg: JSON.stringify(error) });
 			}
 		}
 
@@ -138,6 +139,7 @@
 						console.log('Added ICE candidate for peer:', peerId, message.candidate);
 					} catch (error) {
 						console.error('Error adding ICE candidate for peer:', peerId, error);
+						socket.emit('message', { type: 'error', username: userId, msg: JSON.stringify(error) });
 					}
 				} else {
 					// Queue candidate if remote description is not set yet
@@ -155,7 +157,7 @@
 				handlePeerDisconnect(peerId);
 			}
 		} catch (error) {
-			socket.emit('message', { type: 'error', username: userId, msg: error });
+			socket.emit('message', { type: 'error', username: userId, msg: JSON.stringify(error) });
 			}
 		}
 
