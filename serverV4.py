@@ -10,6 +10,7 @@ from flask_cors import CORS
 from flask import Flask, request
 from flask_socketio import SocketIO, emit
 import re
+from pystun3 import stun
 
 
 # Flask-SocketIO server setup

@@ -4,6 +4,7 @@ import requests
 from time import sleep
 from pyppeteer import launcher, launch, connect
 
+
 async def close_chrome_instances():
     try:
         subprocess.run(['pkill', '-f', 'chromium-browser'], check=True)
